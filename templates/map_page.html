@@ -93,7 +93,6 @@
             success: function (response) {
                             // 미술관 요청 성공 여부 검사
                 if (response['result'] == 'success') {
-                    console.log(response['artgallery_list']);
                     // 전달받은 미술관 리스트를 artgalleryList에 저장한다.
                     let artgalleryList = response['artgallery_list'];
                     // TM128 좌표를 위도/경도 좌표로 변환하기
@@ -107,19 +106,19 @@
         });
     }
         // artgalleryList 좌표 정보를 바꾸기
-        function getartgalleryListWithGeoData(artgalleryList) {
+        function getArtgalleryListWithGeoData(artgalleryList) {
                 // 반환할 미술관 목록
             let result = [];
 
             for (let i = 0; i < artgalleryList.length; i++) {
                       // 개별 미술관 데이터를 artgallery에 저장
-                let artgalleryjip = artgalleryList[i];
+                let artgallery = artgalleryList[i];
                 let mapx = artgallery['mapx'];
                 let mapy = artgallery['mapy'];
                         // TM128 좌표를 위도(lat), 경도(lng) 딕셔너리로 반환
                 let geoData = getLatLng(mapx, mapy);
                         // geoData 라는 이름으로 미술관 데이터에 추가
-                artgalleryjip['geoData'] = geoData;
+                artgallery['geoData'] = geoData;
                         // 반환할 미술관 목록에 추가
                 result.push(artgallery);
             }
