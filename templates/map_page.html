@@ -2,6 +2,11 @@
 <html>
 
 <head>
+
+    <meta property="og:title" content="서울 미술" />
+    <meta property="og:description" content="서울 미술관들을 한 눈에 볼 수 있는 사이트" />
+    <meta property="og:image" content="{{ url_for('static', filename='static/unnamed.jpg') }}" />
+
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport"
@@ -54,13 +59,18 @@
                 <button type="button" class="btn btn-success" onclick="find_artgallery()">전시회 보러가기</button>
             </div>
         </div>
-        <div id="map"></div>
+        <div id="map" style="width:100%;height:400px;"></div>
 
+        <div id="map"></div>
         <div class="artgallery-list" id="artgallery-box">
         </div>
     </div>
 
     <script>
+        var map = new naver.maps.Map('map', {
+    center: new naver.maps.LatLng(37.54475506823472, 126.97916746867145),
+    zoom: 12
+        });
         let seoulGu = ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"];
 
         // 전달받은 구 이름이 seoulGu 목록에 있는지 확인
@@ -155,12 +165,11 @@
             </div>
             </div>`;
 }
+        
         function drawMap(artgalleryList) {
-                // 1등 미술관의 위치 정보를 geoData에 저장합니다.
             let geoData = artgalleryList[0]['geoData'];
-            // 마커 목록 만들기
             let markerList = [];
-            // 1등 미술관을 지도의 중심에 놓습니다.
+            let contents = [];
             let numberOne = new naver.maps.LatLng(geoData['lat'], geoData['lng']),
                 map = new naver.maps.Map('map', {
                     center: numberOne,
@@ -170,15 +179,62 @@
                     position: numberOne,
                     map: map
                 });
-
-                // 2등부터 마지막까지 미술관 데이터를 지도에 표시합니다.
-            for (let i = 1; i < artgalleryList.length; i++) {
+        
+            for (let i = 0; i < artgalleryList.length; i++) {
                 let artgallery = artgalleryList[i];
                 let position = new naver.maps.LatLng(artgallery['geoData']['lat'], artgallery['geoData']['lng'])
                 marker = new naver.maps.Marker({
                     position: position,
                     map: map
                 });
+        
+                        // 마커를 클릭했을 때 보여줄 창을 HTML 태그로 만들기
+                let contentString = `<div class="iw_inner">
+                                    <h3>${artgallery['title']}</h3>
+                                    <p>${artgallery['address']}<br />
+                                        ${artgallery['category']}<br />
+                                        <a href="${artgallery['link']}" target="_blank">링크</a>
+                                    </p>
+                                    </div>`;
+                        // contents에 태그를 저장
+                contents.push(contentString);
+                        // 마커 목록에 markerList 저장하기
+                markerList.push(marker);
+            }
+        
+              // 클래스명이 artgallery-title 카드 정보를 추출
+                const artgalleryElement = $('.artgallery-title');
+        
+            for (let i = 0; i < markerList.length; i++) {
+                let marker = markerList[i];
+                let infowindow = new naver.maps.InfoWindow({
+                    content: contents[i],
+                    maxWidth: 140,
+                    backgroundColor: "#eee",
+                    borderColor: "#2db400",
+                    borderWidth: 5,
+                    anchorSize: new naver.maps.Size(30, 30),
+                    anchorSkew: true,
+                    anchorColor: "#eee",
+                    pixelOffset: new naver.maps.Point(20, -20)
+                });
+                naver.maps.Event.addListener(marker, "click", function (e) {
+                    if (infowindow.getMap()) {
+                        infowindow.close();
+                    } else {
+                        infowindow.open(map, marker);
+                    }
+                });
+        
+                        // 맛집 HTML의 상호명을 클릭했을 때 지도 위에 정보 띄우기
+                artgalleryElement[i].addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (infowindow.getMap()) {
+                        infowindow.close();
+                    } else {
+                        infowindow.open(map, marker);
+                    }
+                })
             }
         }
     </script>

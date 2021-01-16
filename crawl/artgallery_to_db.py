@@ -1,6 +1,7 @@
 import requests
 import pprint
 import time
+import urllib.parse
 from pymongo import MongoClient
 
 # 미술관 데이터는 seoul_artgallery 이라는 데이터베이스에 저장하겠습니다.
@@ -31,7 +32,7 @@ def get_naver_result(keyword):
 docs = []
 # 구별로 검색을 실행합니다.
 for gu in seoul_gu:
-    # '강님구 미술관', '종로구 미술관', '용산구 미술관' .. 을 반복해서 인코딩.
+    # '강남구 미술관', '종로구 미술관', '용산구 미술관' .. 을 반복해서 인코딩.
     keyword = f'{gu} 미술관'
     # 미술관 리스트를 받아옵니다.
     artgallery_list = get_naver_result(keyword)
