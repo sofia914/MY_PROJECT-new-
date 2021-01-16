@@ -36,7 +36,7 @@
             margin: 10px auto;
         }
 
-        .art_gallery-list {
+        .artgallery-list {
             overflow: scroll;
             width: 700px;
             height: 800px;
@@ -51,12 +51,12 @@
         <div class="input-group mb-3">
             <input id="gu-name" type="text" class="form-control" placeholder="예시) 종로구">
             <div class="input-group-append">
-                <button type="button" class="btn btn-success" onclick="find_art_gallery()">전시회 보러가기</button>
+                <button type="button" class="btn btn-success" onclick="find_artgallery()">전시회 보러가기</button>
             </div>
         </div>
         <div id="map"></div>
 
-        <div class="art_gallery-list" id="art_gallery-box">
+        <div class="artgallery-list" id="artgallery-box">
         </div>
     </div>
 
@@ -72,56 +72,56 @@
             }
             return false;
         }
-        function find_art_gallery() {
-
-        let guName = $('#gu-name').val();
-        if (guName == '') {
-        alert('구 이름을 입력하세요');
-        return;
-        }
-        if (isValidGuName(guName) == false) {
-        alert('올바른 구 이름을 입력하세요');
-        return;
+        function find_artgallery() {
+            let guName = $('#gu-name').val();
+            if (guName == '') {
+                alert('구 이름을 입력하세요');
+                return;
+            }
+            if (isValidGuName(guName) == false) {
+                alert('올바른 구 이름을 입력하세요');
+                return;
         }
 
         // 기존 미술관 목록이 있으면 지우기
-        $('#art_gallery-box').empty();
+        $('#artgallery-box').empty();
         // 미술관 정보 요청
         $.ajax({
             type: "GET",
-            url: `/art_gallery?gu_give=${guName}`,
+            url: `/artgallery?gu_give=${guName}`,
             data: {},
             success: function (response) {
                             // 미술관 요청 성공 여부 검사
                 if (response['result'] == 'success') {
-                    // 전달받은 미술관 리스트를 art_galleryList에 저장한다.
-                    let art_galleryList = response['art_gallery_list'];
+                    console.log(response['artgallery_list']);
+                    // 전달받은 미술관 리스트를 artgalleryList에 저장한다.
+                    let artgalleryList = response['artgallery_list'];
                     // TM128 좌표를 위도/경도 좌표로 변환하기
-                    art_galleryList = getArt_galleryListWithGeoData(art_galleryList);
-                    addHTML(art_galleryList);
-                    drawMap(art_galleryList);
+                    artgalleryList = getArtgalleryListWithGeoData(artgalleryList);
+                    addHTML(artgalleryList);
+                    drawMap(artgalleryList);
                 } else {
                     alert('검색이 실패하였습니다.');
                 }
             }
         });
     }
-        // art_galleryList 좌표 정보를 바꾸기
-        function getArt_galleryListWithGeoData(art_galleryList) {
+        // artgalleryList 좌표 정보를 바꾸기
+        function getartgalleryListWithGeoData(artgalleryList) {
                 // 반환할 미술관 목록
             let result = [];
 
-            for (let i = 0; i < art_galleryList.length; i++) {
-                      // 개별 미술관 데이터를 art_gallery에 저장
-                let art_galleryjip = art_galleryList[i];
-                let mapx = art_gallery['mapx'];
-                let mapy = art_gallery['mapy'];
+            for (let i = 0; i < artgalleryList.length; i++) {
+                      // 개별 미술관 데이터를 artgallery에 저장
+                let artgalleryjip = artgalleryList[i];
+                let mapx = artgallery['mapx'];
+                let mapy = artgallery['mapy'];
                         // TM128 좌표를 위도(lat), 경도(lng) 딕셔너리로 반환
                 let geoData = getLatLng(mapx, mapy);
                         // geoData 라는 이름으로 미술관 데이터에 추가
-                art_galleryjip['geoData'] = geoData;
+                artgalleryjip['geoData'] = geoData;
                         // 반환할 미술관 목록에 추가
-                result.push(art_gallery);
+                result.push(artgallery);
             }
                 // 미술관 목록 반환
             return result;
@@ -138,27 +138,27 @@
                 // 변환 딕셔너리 반환
             return { 'lat': geoInfo._lat, 'lng': geoInfo._lng }
         }
-        function addHTML(art_galleryList) {
-    for (let i = 0; i < art_galleryList.length; i++) {
-        let tempHtml = makeCard(art_galleryList[i]);
-        $('#art_gallery-box').append(tempHtml);
+        function addHTML(artgalleryList) {
+    for (let i = 0; i < artgalleryList.length; i++) {
+        let tempHtml = makeCard(artgalleryList[i]);
+        $('#artgallery-box').append(tempHtml);
     }
 }
 
-        function makeCard(art_gallery) {
+        function makeCard(artgallery) {
     return `<div class="card">
             <div class="card-body">
-                <h5 class="card-title"><a href="#" class="art_gallery-title">${art_gallery['title']}</a></h5>
-                <h6 class="card-subtitle mb-2 text-muted">${art_gallery['category']}</h6>
-                <p class="card-text">${art_gallery['roadAddress']}</p>
-                <a href="${art_gallery['link']}" target="_blank" class="card-link">링크</a>
-                <a href="#" class="card-link">${art_gallery['telephone']}</a>
+                <h5 class="card-title"><a href="#" class="artgallery-title">${artgallery['title']}</a></h5>
+                <h6 class="card-subtitle mb-2 text-muted">${artgallery['category']}</h6>
+                <p class="card-text">${artgallery['roadAddress']}</p>
+                <a href="${artgallery['link']}" target="_blank" class="card-link">링크</a>
+                <a href="#" class="card-link">${artgallery['telephone']}</a>
             </div>
             </div>`;
 }
-        function drawMap(art_galleryList) {
+        function drawMap(artgalleryList) {
                 // 1등 미술관의 위치 정보를 geoData에 저장합니다.
-            let geoData = art_galleryList[0]['geoData'];
+            let geoData = artgalleryList[0]['geoData'];
             // 마커 목록 만들기
             let markerList = [];
             // 1등 미술관을 지도의 중심에 놓습니다.
@@ -173,9 +173,9 @@
                 });
 
                 // 2등부터 마지막까지 미술관 데이터를 지도에 표시합니다.
-            for (let i = 1; i < art_galleryList.length; i++) {
-                let art_gallery = art_galleryList[i];
-                let position = new naver.maps.LatLng(art_gallery['geoData']['lat'], art_gallery['geoData']['lng'])
+            for (let i = 1; i < artgalleryList.length; i++) {
+                let artgallery = artgalleryList[i];
+                let position = new naver.maps.LatLng(artgallery['geoData']['lat'], artgallery['geoData']['lng'])
                 marker = new naver.maps.Marker({
                     position: position,
                     map: map
