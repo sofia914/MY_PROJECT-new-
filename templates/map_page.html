@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>미술관 검색</title>
+    <script type="text/javascript"
+        src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=q0yaa351zn&submodules=geocoder"></script>
+
+    <link rel=" stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
+    <script src=" https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+        #map {
+            width: 700px;
+            height: 500px;
+            margin: 50px auto 50px auto;
+        }
+
+        .wrap {
+            width: 700px;
+            margin: 10px auto;
+        }
+
+        .art_gallery-list {
+            overflow: scroll;
+            width: 700px;
+            height: 800px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="wrap">
+        <h1>서울 미술관 검색</h1>
+        <div class="input-group mb-3">
+            <input id="gu-name" type="text" class="form-control" placeholder="예시) 종로구">
+            <div class="input-group-append">
+                <button type="button" class="btn btn-success" onclick="find_art_gallery()">전시회 보러가기</button>
+            </div>
+        </div>
+        <div id="map"></div>
+
+        <div class="art_gallery-list" id="art_gallery-box">
+        </div>
+    </div>
+
+    <script>
+        let seoulGu = ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"];
+
+        // 전달받은 구 이름이 seoulGu 목록에 있는지 확인
+        function isValidGuName(guName) {
+            for (let i = 0; i < seoulGu.length; i++) {
+                if (guName == seoulGu[i]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        function find_art_gallery() {
+
+        let guName = $('#gu-name').val();
+        if (guName == '') {
+        alert('구 이름을 입력하세요');
+        return;
+        }
+        if (isValidGuName(guName) == false) {
+        alert('올바른 구 이름을 입력하세요');
+        return;
+        }
+
+        // 기존 미술관 목록이 있으면 지우기
+        $('#art_gallery-box').empty();
+        // 미술관 정보 요청
+        $.ajax({
+            type: "GET",
+            url: `/art_gallery?gu_give=${guName}`,
+            data: {},
+            success: function (response) {
+                            // 미술관 요청 성공 여부 검사
+                if (response['result'] == 'success') {
+                    // 전달받은 미술관 리스트를 art_galleryList에 저장한다.
+                    let art_galleryList = response['art_gallery_list'];
+                    // TM128 좌표를 위도/경도 좌표로 변환하기
+                    art_galleryList = getArt_galleryListWithGeoData(art_galleryList);
+                    addHTML(art_galleryList);
+                    drawMap(art_galleryList);
+                } else {
+                    alert('검색이 실패하였습니다.');
+                }
+            }
+        });
+    }
+        // art_galleryList 좌표 정보를 바꾸기
+        function getArt_galleryListWithGeoData(art_galleryList) {
+                // 반환할 미술관 목록
+            let result = [];
+
+            for (let i = 0; i < art_galleryList.length; i++) {
+                      // 개별 미술관 데이터를 art_gallery에 저장
+                let art_galleryjip = art_galleryList[i];
+                let mapx = art_gallery['mapx'];
+                let mapy = art_gallery['mapy'];
+                        // TM128 좌표를 위도(lat), 경도(lng) 딕셔너리로 반환
+                let geoData = getLatLng(mapx, mapy);
+                        // geoData 라는 이름으로 미술관 데이터에 추가
+                art_galleryjip['geoData'] = geoData;
+                        // 반환할 미술관 목록에 추가
+                result.push(art_gallery);
+            }
+                // 미술관 목록 반환
+            return result;
+    }
+
+        // TM128 좌표를 위도(lat), 경도(lng) 딕셔너리로 반환
+        function getLatLng(mapx, mapy) {
+                // 문자열 -> 숫자로 변환
+            let x = parseInt(mapx);
+            let y = parseInt(mapy);
+
+                // 네이버가 제공하는 변환 함수 사용
+            let geoInfo = naver.maps.TransCoord.fromTM128ToLatLng(new naver.maps.Point(x, y));
+                // 변환 딕셔너리 반환
+            return { 'lat': geoInfo._lat, 'lng': geoInfo._lng }
+        }
+        function addHTML(art_galleryList) {
+    for (let i = 0; i < art_galleryList.length; i++) {
+        let tempHtml = makeCard(art_galleryList[i]);
+        $('#art_gallery-box').append(tempHtml);
+    }
+}
+
+        function makeCard(art_gallery) {
+    return `<div class="card">
+            <div class="card-body">
+                <h5 class="card-title"><a href="#" class="art_gallery-title">${art_gallery['title']}</a></h5>
+                <h6 class="card-subtitle mb-2 text-muted">${art_gallery['category']}</h6>
+                <p class="card-text">${art_gallery['roadAddress']}</p>
+                <a href="${art_gallery['link']}" target="_blank" class="card-link">링크</a>
+                <a href="#" class="card-link">${art_gallery['telephone']}</a>
+            </div>
+            </div>`;
+}
+        function drawMap(art_galleryList) {
+                // 1등 미술관의 위치 정보를 geoData에 저장합니다.
+            let geoData = art_galleryList[0]['geoData'];
+            // 마커 목록 만들기
+            let markerList = [];
+            // 1등 미술관을 지도의 중심에 놓습니다.
+            let numberOne = new naver.maps.LatLng(geoData['lat'], geoData['lng']),
+                map = new naver.maps.Map('map', {
+                    center: numberOne,
+                    zoom: 12
+                }),
+                marker = new naver.maps.Marker({
+                    position: numberOne,
+                    map: map
+                });
+
+                // 2등부터 마지막까지 미술관 데이터를 지도에 표시합니다.
+            for (let i = 1; i < art_galleryList.length; i++) {
+                let art_gallery = art_galleryList[i];
+                let position = new naver.maps.LatLng(art_gallery['geoData']['lat'], art_gallery['geoData']['lng'])
+                marker = new naver.maps.Marker({
+                    position: position,
+                    map: map
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
